@@ -1,0 +1,78 @@
+/* BeeAtlas Documentation — Tiger-Tail palette */
+
+/* Tiger-Tail: 1 #F2EEB6, 2 #F2D43D, 3 #F2A922, 4 #BF6F41, 5 #231919 */
+
+/* Светлая тема */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #F2A922;
+  --md-primary-fg-color--light: #F2D43D;
+  --md-primary-fg-color--dark: #BF6F41;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #BF6F41;
+  --md-accent-fg-color--transparent: #BF6F411a;
+}
+
+/* Тёмная тема (slate) */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #F2A922;
+  --md-primary-fg-color--light: #F2D43D;
+  --md-primary-fg-color--dark: #BF6F41;
+  --md-primary-bg-color: #231919;
+  --md-primary-bg-color--light: #231919b3;
+  --md-accent-fg-color: #F2D43D;
+  --md-accent-fg-color--transparent: #F2D43D1a;
+}
+
+/* Более мягкие скругления */
+.md-header {
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Карточки и блоки */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Боковая панель */
+.md-sidebar {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Более читаемые ссылки */
+.md-typeset a {
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.md-typeset a:hover {
+  text-decoration: underline;
+}
+
+/* Код-блоки */
+.md-typeset pre {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Таблицы */
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Более плавные переходы */
+.md-nav__link,
+.md-nav__link--active {
+  border-radius: 6px;
+}
+
+/* Контентная область */
+.md-content {
+  max-width: 52rem;
+}

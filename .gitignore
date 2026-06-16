@@ -1,0 +1,10 @@
+# MkDocs
+site/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+run.sh
