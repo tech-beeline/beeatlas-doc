@@ -2,10 +2,10 @@
 ARG BUILD_IMAGE=ubuntu:24.04
 ARG APP_IMAGE=nginxinc/nginx-unprivileged:alpine
 
-FROM ${BUILD_IMAGE} as builder
+FROM ${BUILD_IMAGE} AS builder
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 pip && \
+    apt-get install -y --no-install-recommends python3 python3-pip python3-venv && \
     rm -rf /var/lib/apt/lists/*
 
 ARG PIP_INDEX_URL=''
@@ -13,9 +13,11 @@ ENV PIP_INDEX_URL=$PIP_INDEX_URL
 ARG PIP_TRUSTED_HOST=''
 ENV PIP_TRUSTED_HOST=$PIP_TRUSTED_HOST
 
-RUN python3 -m pip install --no-cache-dir mkdocs mkdocs-material && \
-    rm -rf /root/.cache/pip && \
-    rm -rf /usr/local/lib/python3.10/dist-packages/__pycache__
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+RUN pip install --no-cache-dir mkdocs mkdocs-material && \
+    rm -rf /root/.cache/pip
 
 WORKDIR /build
 
@@ -27,8 +29,7 @@ COPY mkdocs.yml ./
 
 RUN mkdocs build
 
-# Second stage
-FROM ${APP_IMAGE} as app
+FROM ${APP_IMAGE} AS app
 
 COPY --from=builder /build/site /usr/share/nginx/html
 
