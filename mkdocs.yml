@@ -98,7 +98,8 @@ nav:
         - Работа с НФТ и паттернами: beeatlas-docs/instruction/nft_pattern.md
         - Работа с CJ в BPMN: beeatlas-docs/instruction/cj_bpmn.md
         - Staging Service (администрирование):
-            - Принципы и настройка: beeatlas-docs/instruction/staging/overview.md
+            - Обзор: beeatlas-docs/instruction/staging/README.md
+            - Настройка общего пайпа: beeatlas-docs/instruction/staging/configuration.md
             - Загрузка из Sparx EA (e2e-sequence): beeatlas-docs/instruction/staging/sparx.md
             - Загрузка из Structurizr (structurizr-sequence): beeatlas-docs/instruction/staging/structurizr.md
         - Интеграции:

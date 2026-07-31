@@ -12,7 +12,7 @@
 
 ## Периодичность
 
-По умолчанию раз в **час** (`schedule_interval_seconds = 3600` в `staging.configurations`, конфигурация `structurizr-sequence-default`). Меняется обычным `UPDATE` этой таблицы — см. [общую страницу настройки](overview.md#как-настраивается-расписание).
+По умолчанию раз в **час** (`schedule_interval_seconds = 3600` в `staging.configurations`, конфигурация `structurizr-sequence-default`). Меняется обычным `UPDATE` этой таблицы — см. [настройку общего пайпа](configuration.md#как-настраивается-расписание).
 
 ## Как находятся продукты (pre-adapter)
 
