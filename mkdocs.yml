@@ -97,6 +97,10 @@ nav:
         - Критерии карты возможностей: beeatlas-docs/instruction/calc_criterion.md
         - Работа с НФТ и паттернами: beeatlas-docs/instruction/nft_pattern.md
         - Работа с CJ в BPMN: beeatlas-docs/instruction/cj_bpmn.md
+        - Staging Service (администрирование):
+            - Принципы и настройка: beeatlas-docs/instruction/staging/overview.md
+            - Загрузка из Sparx EA (e2e-sequence): beeatlas-docs/instruction/staging/sparx.md
+            - Загрузка из Structurizr (structurizr-sequence): beeatlas-docs/instruction/staging/structurizr.md
         - Интеграции:
             - fdm-gateway (HMAC-аутентификация): beeatlas-docs/instruction/integration/api_gateway.md
             - Асинхронная интеграции через RabbitMQ: beeatlas-docs/instruction/integration/RabbitMQ_async.md
