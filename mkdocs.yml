@@ -1,0 +1,129 @@
+site_name: BeeAtlas Documentation
+site_description: Документация по методологии ПТР и системе BeeAtlas
+site_author: Beeline
+
+# @todo: надо поддержать переменные окружения и заполнять URL на запуске- https://pypi.org/project/hatch-mkdocs/
+site_url: https://beeatlas-doc.example.com
+
+docs_dir: docs
+strict: false
+
+# Включаем каталог templates (по умолчанию MkDocs его исключает)
+exclude_docs: |
+  !/templates/
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Тёмная тема
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Светлая тема
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - search:
+      lang: ru
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+
+nav:
+  - Главная: index.md
+  - ПТР (Проектирование технического решения):
+    - Старт: start.md
+    - Инструменты и настройка:
+      - Настройка plugin: Настройка plugin.md
+      - Регистрация в репозитории: Регистрация в корпоративном архитектурном репозитории.md
+    - Методология:
+      - Метамодель: 3.0 Метамодель.md
+      - Определение перечня ТС: 2 Определение перечня ТС.md
+      - Контекстная диаграмма: 3.1 Контекстная диаграмма.md
+      - Контейнерная диаграмма: 3.2 Контейнерная диаграмма.md
+      - Сценарии использования: 3.5 Сценарии использования.md
+      - API и Нефункциональные требования: 3.6 Нефункциональные требования.md
+      - Логическая модель данных: 3.8 Логическая модель данных.md
+      - Компонентная диаграмма: 4.1 Компонентная диаграмма.md
+      - Диаграмма развертывания: 4.2 Диаграмма развертывания.md
+    - Реестры и справочники:
+      - Реестр архитектурных решений (ADR): 5 Реестр архитектурных решений (ADR).md
+    - Правила моделирования:
+      - Стили и тэги: 9.1 Стили и тэги.md
+      - Версионирование архитектуры: 9.2 Версионирование архитектуры.md
+    - Стандарты:
+      - Стандартная структура документации: 10 Стандартная структура документации.md
+      - Проверки архитектуры: 11 Описание проверок архитектуры.md
+      - Инструкция по применению подхода SPDD: SPDD instruction.md
+  - BeeAtlas:
+    - О системе: beeatlas-docs/README.md
+    - Модели: beeatlas-docs/models.md
+    - База знаний: beeatlas-docs/database.md
+    - CX (Customer Experience): beeatlas-docs/cx.md
+    - Инструкции:
+        - Критерии карты возможностей: beeatlas-docs/instruction/calc_criterion.md
+        - Работа с НФТ и паттернами: beeatlas-docs/instruction/nft_pattern.md
+        - Работа с CJ в BPMN: beeatlas-docs/instruction/cj_bpmn.md
+        - Интеграции:
+            - fdm-gateway (HMAC-аутентификация): beeatlas-docs/instruction/integration/api_gateway.md
+            - Асинхронная интеграции через RabbitMQ: beeatlas-docs/instruction/integration/RabbitMQ_async.md
+        - Custom Fitness Function:
+            - Создание ФФ: beeatlas-docs/instruction/FF/custom_fitness_function.md
+            - Подготовка скрипта: beeatlas-docs/instruction/FF/CUSTOM_SCRIPT_GUIDE.md
+            - Асинхронная HTTP-проверка: beeatlas-docs/instruction/FF/http-check-async.md
+            - Синхронная HTTP-проверка: beeatlas-docs/instruction/FF/http-check-sync.md
+    - Профиль: beeatlas-docs/profile.md
+    - Панель администратора:
+            - Управление ролями: beeatlas-docs/admin/roles.md
+            - Управление приложениями: beeatlas-docs/admin/applications.md
+            - Управление технологиями: beeatlas-docs/admin/technologies.md
+            - Управление критериями: beeatlas-docs/admin/criteria.md
+            - Управление кастомными фитнес-функциями: beeatlas-docs/admin/fitness_functions.md
+            - Импорт файлов: beeatlas-docs/admin/file_import.md
+            - Процесс импорта: beeatlas-docs/admin/import_process.md
+            - Управление возможностями: beeatlas-docs/admin/capabilities.md
+    - Уведомления: beeatlas-docs/notifications.md
+    - Модели (детально):
+      - Поиск возможностей: beeatlas-docs/models/search.md
+      - ФДМ: beeatlas-docs/models/fdm.md
+      - Технорадар: beeatlas-docs/models/tech-radar.md
+      - Карта возможностей: beeatlas-docs/models/map.md
+      - Каталог приложений: beeatlas-docs/models/apps.md
+      - E2E сценарии: beeatlas-docs/models/e2e.md
+      - Анализ влияния: beeatlas-docs/models/impact.md
+      - Каталог паттернов: beeatlas-docs/models/patterns.md
+      - Аналитический отчет фитнес-функций: beeatlas-docs/models/analytical_report.md
+      - Каталог жизненных ситуаций: beeatlas-docs/models/life-situations.md
