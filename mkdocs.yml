@@ -120,6 +120,7 @@ nav:
             - Импорт файлов: beeatlas-docs/admin/file_import.md
             - Процесс импорта: beeatlas-docs/admin/import_process.md
             - Управление возможностями: beeatlas-docs/admin/capabilities.md
+            - Staging (наблюдаемость и поиск): beeatlas-docs/admin/staging.md
     - Уведомления: beeatlas-docs/notifications.md
     - Модели (детально):
       - Поиск возможностей: beeatlas-docs/models/search.md
