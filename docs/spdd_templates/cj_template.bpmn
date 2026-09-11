@@ -1,510 +1,349 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_warehouse_operations" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.27.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_warehouse_operations" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.31.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
   <bpmn:process id="Process_WarehouseOperations" isExecutable="true">
     <bpmn:startEvent id="StartEvent_Process">
-      <bpmn:outgoing>Flow_ToReceipt</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToWMSpriemkatovara</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:subProcess id="Activity_Receipt" name="WMS Приемка товара">
-      <bpmn:incoming>Flow_ToReceipt</bpmn:incoming>
-      <bpmn:outgoing>Flow_ToPlacement</bpmn:outgoing>
-      <bpmn:subProcess id="Activity_WMS_Receipt" name="BI Приемка товара">
-        <bpmn:incoming>Flow_ReceiptStart</bpmn:incoming>
-        <bpmn:startEvent id="Event_ReceiptStart">
-          <bpmn:outgoing>Flow_ReceiptTask</bpmn:outgoing>
-        </bpmn:startEvent>
-        <bpmn:task id="Activity_ReceiptTask" name="Приемка товара на склад">
-          <bpmn:incoming>Flow_ReceiptTask</bpmn:incoming>
-          <bpmn:outgoing>Flow_ValidateReceipt</bpmn:outgoing>
-        </bpmn:task>
-        <bpmn:serviceTask id="Activity_ValidateReceipt" name="Валидация товара">
-          <bpmn:incoming>Flow_ValidateReceipt</bpmn:incoming>
-          <bpmn:outgoing>Flow_UpdateStock</bpmn:outgoing>
+    <bpmn:subProcess id="Activity_WMSpriemkatovara" name="WMS Приемка товара">
+      <bpmn:incoming>Flow_ToWMSpriemkatovara</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToWMSrazmeschenietovara</bpmn:outgoing>
+      <bpmn:subProcess id="Activity_BI_WMSpriemkatovara_1" name="BI Приемка товара">
+        <bpmn:userTask id="Activity_WMSpriemkatovara11" name="Приемка товара на склад">
+          <bpmn:extensionElements>
+            <zeebe:userTask />
+          </bpmn:extensionElements>
+          <bpmn:outgoing>WMSpriemkatovara1F1</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:serviceTask id="Activity_WMSpriemkatovara12" name="Валидация товара">
+          <bpmn:incoming>WMSpriemkatovara1F1</bpmn:incoming>
+          <bpmn:outgoing>WMSpriemkatovara1F2</bpmn:outgoing>
         </bpmn:serviceTask>
-        <bpmn:serviceTask id="Activity_UpdateStock" name="Обновление остатков">
-          <bpmn:incoming>Flow_UpdateStock</bpmn:incoming>
-          <bpmn:outgoing>Flow_ReceiptEnd</bpmn:outgoing>
+        <bpmn:serviceTask id="Activity_WMSpriemkatovara13" name="Обновление остатков">
+          <bpmn:incoming>WMSpriemkatovara1F2</bpmn:incoming>
         </bpmn:serviceTask>
-        <bpmn:endEvent id="Event_ReceiptEnd">
-          <bpmn:incoming>Flow_ReceiptEnd</bpmn:incoming>
-        </bpmn:endEvent>
-        <bpmn:sequenceFlow id="Flow_ReceiptTask" sourceRef="Event_ReceiptStart" targetRef="Activity_ReceiptTask" />
-        <bpmn:sequenceFlow id="Flow_ValidateReceipt" sourceRef="Activity_ReceiptTask" targetRef="Activity_ValidateReceipt" />
-        <bpmn:sequenceFlow id="Flow_UpdateStock" sourceRef="Activity_ValidateReceipt" targetRef="Activity_UpdateStock" />
-        <bpmn:sequenceFlow id="Flow_ReceiptEnd" sourceRef="Activity_UpdateStock" targetRef="Event_ReceiptEnd" />
+        <bpmn:sequenceFlow id="WMSpriemkatovara1F1" sourceRef="Activity_WMSpriemkatovara11" targetRef="Activity_WMSpriemkatovara12" />
+        <bpmn:sequenceFlow id="WMSpriemkatovara1F2" sourceRef="Activity_WMSpriemkatovara12" targetRef="Activity_WMSpriemkatovara13" />
       </bpmn:subProcess>
-      <bpmn:callActivity id="Activity_WMS_Login" name="WMS Зайти в систему" calledElement="WMS.00.00.01.01">
-        <bpmn:outgoing>Flow_ReceiptStart</bpmn:outgoing>
-      </bpmn:callActivity>
-      <bpmn:sequenceFlow id="Flow_ReceiptStart" sourceRef="Activity_WMS_Login" targetRef="Activity_WMS_Receipt" />
     </bpmn:subProcess>
-    <bpmn:subProcess id="Activity_Placement" name="WMS Размещение товара">
-      <bpmn:incoming>Flow_ToPlacement</bpmn:incoming>
-      <bpmn:outgoing>Flow_ToPicking</bpmn:outgoing>
-      <bpmn:subProcess id="Activity_WMS_Placement" name="BI Размещение товара">
-        <bpmn:incoming>Flow_PlacementStart</bpmn:incoming>
-        <bpmn:startEvent id="Event_PlacementStart">
-          <bpmn:outgoing>Flow_DetermineLocation</bpmn:outgoing>
-        </bpmn:startEvent>
-        <bpmn:serviceTask id="Activity_DetermineLocation" name="Определение места размещения">
-          <bpmn:incoming>Flow_DetermineLocation</bpmn:incoming>
-          <bpmn:outgoing>Flow_PlacementTask</bpmn:outgoing>
+    <bpmn:subProcess id="Activity_WMSrazmeschenietovara" name="WMS Размещение товара">
+      <bpmn:incoming>Flow_ToWMSrazmeschenietovara</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToWMSotbortovara</bpmn:outgoing>
+      <bpmn:subProcess id="Activity_BI_WMSrazmeschenietovara_1" name="BI Размещение товара">
+        <bpmn:serviceTask id="Activity_WMSrazmeschenietovara11" name="Определение места размещения">
+          <bpmn:outgoing>WMSrazmeschenietovara1F1</bpmn:outgoing>
         </bpmn:serviceTask>
-        <bpmn:task id="Activity_PlacementTask" name="Размещение товара на складе">
-          <bpmn:incoming>Flow_PlacementTask</bpmn:incoming>
-          <bpmn:outgoing>Flow_UpdateLocation</bpmn:outgoing>
-        </bpmn:task>
-        <bpmn:serviceTask id="Activity_UpdateLocation" name="Обновление местоположения">
-          <bpmn:incoming>Flow_UpdateLocation</bpmn:incoming>
-          <bpmn:outgoing>Flow_PlacementEnd</bpmn:outgoing>
+        <bpmn:userTask id="Activity_WMSrazmeschenietovara12" name="Размещение товара на складе">
+          <bpmn:extensionElements>
+            <zeebe:userTask />
+          </bpmn:extensionElements>
+          <bpmn:incoming>WMSrazmeschenietovara1F1</bpmn:incoming>
+          <bpmn:outgoing>WMSrazmeschenietovara1F2</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:serviceTask id="Activity_WMSrazmeschenietovara13" name="Обновление местоположения">
+          <bpmn:incoming>WMSrazmeschenietovara1F2</bpmn:incoming>
         </bpmn:serviceTask>
-        <bpmn:endEvent id="Event_PlacementEnd">
-          <bpmn:incoming>Flow_PlacementEnd</bpmn:incoming>
-        </bpmn:endEvent>
-        <bpmn:sequenceFlow id="Flow_DetermineLocation" sourceRef="Event_PlacementStart" targetRef="Activity_DetermineLocation" />
-        <bpmn:sequenceFlow id="Flow_PlacementTask" sourceRef="Activity_DetermineLocation" targetRef="Activity_PlacementTask" />
-        <bpmn:sequenceFlow id="Flow_UpdateLocation" sourceRef="Activity_PlacementTask" targetRef="Activity_UpdateLocation" />
-        <bpmn:sequenceFlow id="Flow_PlacementEnd" sourceRef="Activity_UpdateLocation" targetRef="Event_PlacementEnd" />
+        <bpmn:sequenceFlow id="WMSrazmeschenietovara1F1" sourceRef="Activity_WMSrazmeschenietovara11" targetRef="Activity_WMSrazmeschenietovara12" />
+        <bpmn:sequenceFlow id="WMSrazmeschenietovara1F2" sourceRef="Activity_WMSrazmeschenietovara12" targetRef="Activity_WMSrazmeschenietovara13" />
       </bpmn:subProcess>
-      <bpmn:callActivity id="Activity_WMS_PlacementLogin" name="WMS Зайти в систему" calledElement="WMS.00.00.01.02">
-        <bpmn:outgoing>Flow_PlacementStart</bpmn:outgoing>
-      </bpmn:callActivity>
-      <bpmn:sequenceFlow id="Flow_PlacementStart" sourceRef="Activity_WMS_PlacementLogin" targetRef="Activity_WMS_Placement" />
     </bpmn:subProcess>
-    <bpmn:subProcess id="Activity_Picking" name="WMS Отбор товара">
-      <bpmn:incoming>Flow_ToPicking</bpmn:incoming>
-      <bpmn:outgoing>Flow_ToShipment</bpmn:outgoing>
-      <bpmn:subProcess id="Activity_WMS_Picking" name="BI Отбор товара">
-        <bpmn:incoming>Flow_PickingStart</bpmn:incoming>
-        <bpmn:startEvent id="Event_PickingStart">
-          <bpmn:outgoing>Flow_OptimizeRoute</bpmn:outgoing>
-        </bpmn:startEvent>
-        <bpmn:serviceTask id="Activity_OptimizeRoute" name="Оптимизация маршрута отбора">
-          <bpmn:incoming>Flow_OptimizeRoute</bpmn:incoming>
-          <bpmn:outgoing>Flow_PickingTask</bpmn:outgoing>
+    <bpmn:subProcess id="Activity_WMSotbortovara" name="WMS Отбор товара">
+      <bpmn:incoming>Flow_ToWMSotbortovara</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToWMSotgruzkatovara</bpmn:outgoing>
+      <bpmn:subProcess id="Activity_BI_WMSotbortovara_1" name="BI Отбор товара">
+        <bpmn:serviceTask id="Activity_WMSotbortovara11" name="Оптимизация маршрута отбора">
+          <bpmn:outgoing>WMSotbortovara1F1</bpmn:outgoing>
         </bpmn:serviceTask>
-        <bpmn:task id="Activity_PickingTask" name="Отбор товара со склада">
-          <bpmn:incoming>Flow_PickingTask</bpmn:incoming>
-          <bpmn:outgoing>Flow_ConfirmPicking</bpmn:outgoing>
-        </bpmn:task>
-        <bpmn:serviceTask id="Activity_ConfirmPicking" name="Подтверждение отбора">
-          <bpmn:incoming>Flow_ConfirmPicking</bpmn:incoming>
-          <bpmn:outgoing>Flow_PickingEnd</bpmn:outgoing>
+        <bpmn:userTask id="Activity_WMSotbortovara12" name="Отбор товара со склада">
+          <bpmn:extensionElements>
+            <zeebe:userTask />
+          </bpmn:extensionElements>
+          <bpmn:incoming>WMSotbortovara1F1</bpmn:incoming>
+          <bpmn:outgoing>WMSotbortovara1F2</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:serviceTask id="Activity_WMSotbortovara13" name="Подтверждение отбора">
+          <bpmn:incoming>WMSotbortovara1F2</bpmn:incoming>
         </bpmn:serviceTask>
-        <bpmn:endEvent id="Event_PickingEnd">
-          <bpmn:incoming>Flow_PickingEnd</bpmn:incoming>
-        </bpmn:endEvent>
-        <bpmn:sequenceFlow id="Flow_OptimizeRoute" sourceRef="Event_PickingStart" targetRef="Activity_OptimizeRoute" />
-        <bpmn:sequenceFlow id="Flow_PickingTask" sourceRef="Activity_OptimizeRoute" targetRef="Activity_PickingTask" />
-        <bpmn:sequenceFlow id="Flow_ConfirmPicking" sourceRef="Activity_PickingTask" targetRef="Activity_ConfirmPicking" />
-        <bpmn:sequenceFlow id="Flow_PickingEnd" sourceRef="Activity_ConfirmPicking" targetRef="Event_PickingEnd" />
+        <bpmn:sequenceFlow id="WMSotbortovara1F1" sourceRef="Activity_WMSotbortovara11" targetRef="Activity_WMSotbortovara12" />
+        <bpmn:sequenceFlow id="WMSotbortovara1F2" sourceRef="Activity_WMSotbortovara12" targetRef="Activity_WMSotbortovara13" />
       </bpmn:subProcess>
-      <bpmn:callActivity id="Activity_WMS_PickingLogin" name="WMS Зайти в систему" calledElement="WMS.00.00.01.03">
-        <bpmn:outgoing>Flow_PickingStart</bpmn:outgoing>
-      </bpmn:callActivity>
-      <bpmn:sequenceFlow id="Flow_PickingStart" sourceRef="Activity_WMS_PickingLogin" targetRef="Activity_WMS_Picking" />
     </bpmn:subProcess>
-    <bpmn:subProcess id="Activity_Shipment" name="WMS Отгрузка товара">
-      <bpmn:incoming>Flow_ToShipment</bpmn:incoming>
-      <bpmn:outgoing>Flow_ToInventory</bpmn:outgoing>
-      <bpmn:subProcess id="Activity_WMS_Shipment" name="BI Отгрузка товара">
-        <bpmn:incoming>Flow_ShipmentStart</bpmn:incoming>
-        <bpmn:startEvent id="Event_ShipmentStart">
-          <bpmn:outgoing>Flow_PrepareShipment</bpmn:outgoing>
-        </bpmn:startEvent>
-        <bpmn:serviceTask id="Activity_PrepareShipment" name="Подготовка отгрузки">
-          <bpmn:incoming>Flow_PrepareShipment</bpmn:incoming>
-          <bpmn:outgoing>Flow_ShipmentTask</bpmn:outgoing>
+    <bpmn:subProcess id="Activity_WMSotgruzkatovara" name="WMS Отгрузка товара">
+      <bpmn:incoming>Flow_ToWMSotgruzkatovara</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToWMSinventarizaciya</bpmn:outgoing>
+      <bpmn:subProcess id="Activity_BI_WMSotgruzkatovara_1" name="BI Отгрузка товара">
+        <bpmn:serviceTask id="Activity_WMSotgruzkatovara11" name="Подготовка отгрузки">
+          <bpmn:outgoing>WMSotgruzkatovara1F1</bpmn:outgoing>
         </bpmn:serviceTask>
-        <bpmn:task id="Activity_ShipmentTask" name="Отгрузка товара">
-          <bpmn:incoming>Flow_ShipmentTask</bpmn:incoming>
-          <bpmn:outgoing>Flow_UpdateStockShipment</bpmn:outgoing>
-        </bpmn:task>
-        <bpmn:serviceTask id="Activity_UpdateStockShipment" name="Списание остатков">
-          <bpmn:incoming>Flow_UpdateStockShipment</bpmn:incoming>
-          <bpmn:outgoing>Flow_CreateDocuments</bpmn:outgoing>
+        <bpmn:userTask id="Activity_WMSotgruzkatovara12" name="Отгрузка товара">
+          <bpmn:extensionElements>
+            <zeebe:userTask />
+          </bpmn:extensionElements>
+          <bpmn:incoming>WMSotgruzkatovara1F1</bpmn:incoming>
+          <bpmn:outgoing>WMSotgruzkatovara1F2</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:serviceTask id="Activity_WMSotgruzkatovara13" name="Списание остатков">
+          <bpmn:incoming>WMSotgruzkatovara1F2</bpmn:incoming>
+          <bpmn:outgoing>WMSotgruzkatovara1F3</bpmn:outgoing>
         </bpmn:serviceTask>
-        <bpmn:serviceTask id="Activity_CreateDocuments" name="Создание документов">
-          <bpmn:incoming>Flow_CreateDocuments</bpmn:incoming>
-          <bpmn:outgoing>Flow_ShipmentEnd</bpmn:outgoing>
+        <bpmn:serviceTask id="Activity_WMSotgruzkatovara14" name="Создание документов">
+          <bpmn:incoming>WMSotgruzkatovara1F3</bpmn:incoming>
         </bpmn:serviceTask>
-        <bpmn:endEvent id="Event_ShipmentEnd">
-          <bpmn:incoming>Flow_ShipmentEnd</bpmn:incoming>
-        </bpmn:endEvent>
-        <bpmn:sequenceFlow id="Flow_PrepareShipment" sourceRef="Event_ShipmentStart" targetRef="Activity_PrepareShipment" />
-        <bpmn:sequenceFlow id="Flow_ShipmentTask" sourceRef="Activity_PrepareShipment" targetRef="Activity_ShipmentTask" />
-        <bpmn:sequenceFlow id="Flow_UpdateStockShipment" sourceRef="Activity_ShipmentTask" targetRef="Activity_UpdateStockShipment" />
-        <bpmn:sequenceFlow id="Flow_CreateDocuments" sourceRef="Activity_UpdateStockShipment" targetRef="Activity_CreateDocuments" />
-        <bpmn:sequenceFlow id="Flow_ShipmentEnd" sourceRef="Activity_CreateDocuments" targetRef="Event_ShipmentEnd" />
+        <bpmn:sequenceFlow id="WMSotgruzkatovara1F1" sourceRef="Activity_WMSotgruzkatovara11" targetRef="Activity_WMSotgruzkatovara12" />
+        <bpmn:sequenceFlow id="WMSotgruzkatovara1F2" sourceRef="Activity_WMSotgruzkatovara12" targetRef="Activity_WMSotgruzkatovara13" />
+        <bpmn:sequenceFlow id="WMSotgruzkatovara1F3" sourceRef="Activity_WMSotgruzkatovara13" targetRef="Activity_WMSotgruzkatovara14" />
       </bpmn:subProcess>
-      <bpmn:callActivity id="Activity_WMS_ShipmentLogin" name="WMS Зайти в систему" calledElement="WMS.00.00.01.04">
-        <bpmn:outgoing>Flow_ShipmentStart</bpmn:outgoing>
-      </bpmn:callActivity>
-      <bpmn:sequenceFlow id="Flow_ShipmentStart" sourceRef="Activity_WMS_ShipmentLogin" targetRef="Activity_WMS_Shipment" />
     </bpmn:subProcess>
-    <bpmn:subProcess id="Activity_Inventory" name="WMS Инвентаризация">
-      <bpmn:incoming>Flow_ToInventory</bpmn:incoming>
+    <bpmn:subProcess id="Activity_WMSinventarizaciya" name="WMS Инвентаризация">
+      <bpmn:incoming>Flow_ToWMSinventarizaciya</bpmn:incoming>
       <bpmn:outgoing>Flow_ToEnd</bpmn:outgoing>
-      <bpmn:subProcess id="Activity_WMS_Inventory" name="BI Инвентаризация">
-        <bpmn:incoming>Flow_InventoryStart</bpmn:incoming>
-        <bpmn:startEvent id="Event_InventoryStart">
-          <bpmn:outgoing>Flow_StartInventory</bpmn:outgoing>
-        </bpmn:startEvent>
-        <bpmn:serviceTask id="Activity_StartInventory" name="Запуск инвентаризации">
-          <bpmn:incoming>Flow_StartInventory</bpmn:incoming>
-          <bpmn:outgoing>Flow_InventoryTask</bpmn:outgoing>
+      <bpmn:subProcess id="Activity_BI_WMSinventarizaciya_1" name="BI Инвентаризация">
+        <bpmn:userTask id="Activity_WMSinventarizaciya11" name="Запуск инвентаризации">
+          <bpmn:extensionElements>
+            <zeebe:userTask />
+          </bpmn:extensionElements>
+          <bpmn:outgoing>WMSinventarizaciya1F1</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:serviceTask id="Activity_WMSinventarizaciya12" name="Сверка фактических и учётных остатков">
+          <bpmn:incoming>WMSinventarizaciya1F1</bpmn:incoming>
+          <bpmn:outgoing>WMSinventarizaciya1F2</bpmn:outgoing>
         </bpmn:serviceTask>
-        <bpmn:task id="Activity_InventoryTask" name="Проведение инвентаризации">
-          <bpmn:incoming>Flow_InventoryTask</bpmn:incoming>
-          <bpmn:outgoing>Flow_CompareData</bpmn:outgoing>
-        </bpmn:task>
-        <bpmn:serviceTask id="Activity_CompareData" name="Сравнение данных">
-          <bpmn:incoming>Flow_CompareData</bpmn:incoming>
-          <bpmn:outgoing>Flow_CompleteInventory</bpmn:outgoing>
+        <bpmn:serviceTask id="Activity_WMSinventarizaciya13" name="Формирование акта инвентаризации">
+          <bpmn:incoming>WMSinventarizaciya1F2</bpmn:incoming>
         </bpmn:serviceTask>
-        <bpmn:serviceTask id="Activity_CompleteInventory" name="Завершение инвентаризации">
-          <bpmn:incoming>Flow_CompleteInventory</bpmn:incoming>
-          <bpmn:outgoing>Flow_InventoryEnd</bpmn:outgoing>
-        </bpmn:serviceTask>
-        <bpmn:endEvent id="Event_InventoryEnd">
-          <bpmn:incoming>Flow_InventoryEnd</bpmn:incoming>
-        </bpmn:endEvent>
-        <bpmn:sequenceFlow id="Flow_StartInventory" sourceRef="Event_InventoryStart" targetRef="Activity_StartInventory" />
-        <bpmn:sequenceFlow id="Flow_InventoryTask" sourceRef="Activity_StartInventory" targetRef="Activity_InventoryTask" />
-        <bpmn:sequenceFlow id="Flow_CompareData" sourceRef="Activity_InventoryTask" targetRef="Activity_CompareData" />
-        <bpmn:sequenceFlow id="Flow_CompleteInventory" sourceRef="Activity_CompareData" targetRef="Activity_CompleteInventory" />
-        <bpmn:sequenceFlow id="Flow_InventoryEnd" sourceRef="Activity_CompleteInventory" targetRef="Event_InventoryEnd" />
+        <bpmn:sequenceFlow id="WMSinventarizaciya1F1" sourceRef="Activity_WMSinventarizaciya11" targetRef="Activity_WMSinventarizaciya12" />
+        <bpmn:sequenceFlow id="WMSinventarizaciya1F2" sourceRef="Activity_WMSinventarizaciya12" targetRef="Activity_WMSinventarizaciya13" />
       </bpmn:subProcess>
-      <bpmn:callActivity id="Activity_WMS_InventoryLogin" name="WMS Зайти в систему" calledElement="WMS.00.00.01.05">
-        <bpmn:outgoing>Flow_InventoryStart</bpmn:outgoing>
-      </bpmn:callActivity>
-      <bpmn:sequenceFlow id="Flow_InventoryStart" sourceRef="Activity_WMS_InventoryLogin" targetRef="Activity_WMS_Inventory" />
     </bpmn:subProcess>
     <bpmn:endEvent id="EndEvent_Process">
       <bpmn:incoming>Flow_ToEnd</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_ToReceipt" sourceRef="StartEvent_Process" targetRef="Activity_Receipt" />
-    <bpmn:sequenceFlow id="Flow_ToPlacement" sourceRef="Activity_Receipt" targetRef="Activity_Placement" />
-    <bpmn:sequenceFlow id="Flow_ToPicking" sourceRef="Activity_Placement" targetRef="Activity_Picking" />
-    <bpmn:sequenceFlow id="Flow_ToShipment" sourceRef="Activity_Picking" targetRef="Activity_Shipment" />
-    <bpmn:sequenceFlow id="Flow_ToInventory" sourceRef="Activity_Shipment" targetRef="Activity_Inventory" />
-    <bpmn:sequenceFlow id="Flow_ToEnd" sourceRef="Activity_Inventory" targetRef="EndEvent_Process" />
+    <bpmn:sequenceFlow id="Flow_ToWMSpriemkatovara" sourceRef="StartEvent_Process" targetRef="Activity_WMSpriemkatovara" />
+    <bpmn:sequenceFlow id="Flow_ToWMSrazmeschenietovara" sourceRef="Activity_WMSpriemkatovara" targetRef="Activity_WMSrazmeschenietovara" />
+    <bpmn:sequenceFlow id="Flow_ToWMSotbortovara" sourceRef="Activity_WMSrazmeschenietovara" targetRef="Activity_WMSotbortovara" />
+    <bpmn:sequenceFlow id="Flow_ToWMSotgruzkatovara" sourceRef="Activity_WMSotbortovara" targetRef="Activity_WMSotgruzkatovara" />
+    <bpmn:sequenceFlow id="Flow_ToWMSinventarizaciya" sourceRef="Activity_WMSotgruzkatovara" targetRef="Activity_WMSinventarizaciya" />
+    <bpmn:sequenceFlow id="Flow_ToEnd" sourceRef="Activity_WMSinventarizaciya" targetRef="EndEvent_Process" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Main">
     <bpmndi:BPMNPlane id="BPMNPlane_Main" bpmnElement="Process_WarehouseOperations">
       <bpmndi:BPMNShape id="StartEvent_Process_di" bpmnElement="StartEvent_Process">
-        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <dc:Bounds x="182" y="162" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_Receipt_di" bpmnElement="Activity_Receipt">
-        <dc:Bounds x="230" y="80" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSpriemkatovara_di" bpmnElement="Activity_WMSpriemkatovara">
+        <dc:Bounds x="310" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_Placement_di" bpmnElement="Activity_Placement">
-        <dc:Bounds x="380" y="80" width="100" height="80" />
+      <bpmndi:BPMNEdge id="Flow_ToWMSpriemkatovara_di" bpmnElement="Flow_ToWMSpriemkatovara">
+        <di:waypoint x="218" y="180" />
+        <di:waypoint x="310" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_WMSrazmeschenietovara_di" bpmnElement="Activity_WMSrazmeschenietovara">
+        <dc:Bounds x="502" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_Picking_di" bpmnElement="Activity_Picking">
-        <dc:Bounds x="530" y="80" width="100" height="80" />
+      <bpmndi:BPMNEdge id="Flow_ToWMSrazmeschenietovara_di" bpmnElement="Flow_ToWMSrazmeschenietovara">
+        <di:waypoint x="410" y="180" />
+        <di:waypoint x="502" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_WMSotbortovara_di" bpmnElement="Activity_WMSotbortovara">
+        <dc:Bounds x="694" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_Shipment_di" bpmnElement="Activity_Shipment">
-        <dc:Bounds x="680" y="80" width="100" height="80" />
+      <bpmndi:BPMNEdge id="Flow_ToWMSotbortovara_di" bpmnElement="Flow_ToWMSotbortovara">
+        <di:waypoint x="602" y="180" />
+        <di:waypoint x="694" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_WMSotgruzkatovara_di" bpmnElement="Activity_WMSotgruzkatovara">
+        <dc:Bounds x="886" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_Inventory_di" bpmnElement="Activity_Inventory">
-        <dc:Bounds x="830" y="80" width="100" height="80" />
+      <bpmndi:BPMNEdge id="Flow_ToWMSotgruzkatovara_di" bpmnElement="Flow_ToWMSotgruzkatovara">
+        <di:waypoint x="794" y="180" />
+        <di:waypoint x="886" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_WMSinventarizaciya_di" bpmnElement="Activity_WMSinventarizaciya">
+        <dc:Bounds x="1078" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToWMSinventarizaciya_di" bpmnElement="Flow_ToWMSinventarizaciya">
+        <di:waypoint x="986" y="180" />
+        <di:waypoint x="1078" y="180" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_Process_di" bpmnElement="EndEvent_Process">
-        <dc:Bounds x="980" y="120" width="36" height="36" />
+        <dc:Bounds x="1230" y="162" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_ToReceipt_di" bpmnElement="Flow_ToReceipt">
-        <di:waypoint x="185" y="130" />
-        <di:waypoint x="209" y="130" />
-        <di:waypoint x="209" y="94" />
-        <di:waypoint x="230" y="94" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ToPlacement_di" bpmnElement="Flow_ToPlacement">
-        <di:waypoint x="330" y="120" />
-        <di:waypoint x="380" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ToPicking_di" bpmnElement="Flow_ToPicking">
-        <di:waypoint x="480" y="120" />
-        <di:waypoint x="530" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ToShipment_di" bpmnElement="Flow_ToShipment">
-        <di:waypoint x="630" y="120" />
-        <di:waypoint x="680" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ToInventory_di" bpmnElement="Flow_ToInventory">
-        <di:waypoint x="780" y="120" />
-        <di:waypoint x="830" y="120" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_ToEnd_di" bpmnElement="Flow_ToEnd">
-        <di:waypoint x="930" y="120" />
-        <di:waypoint x="980" y="138" />
+        <di:waypoint x="1178" y="180" />
+        <di:waypoint x="1230" y="180" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_Receipt">
-    <bpmndi:BPMNPlane id="BPMNPlane_Receipt" bpmnElement="Activity_Receipt">
-      <bpmndi:BPMNShape id="Activity_WMS_Receipt_di" bpmnElement="Activity_WMS_Receipt" isExpanded="true">
-        <dc:Bounds x="160" y="110" width="560" height="200" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_WMSpriemkatovara">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_WMSpriemkatovara" bpmnElement="Activity_WMSpriemkatovara">
+      <bpmndi:BPMNShape id="Activity_BI_WMSpriemkatovara_1_di" bpmnElement="Activity_BI_WMSpriemkatovara_1">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_ReceiptStart_di" bpmnElement="Event_ReceiptStart">
-        <dc:Bounds x="200" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_ReceiptTask_di" bpmnElement="Activity_ReceiptTask">
-        <dc:Bounds x="290" y="170" width="100" height="80" />
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_WMSrazmeschenietovara">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_WMSrazmeschenietovara" bpmnElement="Activity_WMSrazmeschenietovara">
+      <bpmndi:BPMNShape id="Activity_BI_WMSrazmeschenietovara_1_di" bpmnElement="Activity_BI_WMSrazmeschenietovara_1">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_ValidateReceipt_di" bpmnElement="Activity_ValidateReceipt">
-        <dc:Bounds x="430" y="170" width="100" height="80" />
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_WMSotbortovara">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_WMSotbortovara" bpmnElement="Activity_WMSotbortovara">
+      <bpmndi:BPMNShape id="Activity_BI_WMSotbortovara_1_di" bpmnElement="Activity_BI_WMSotbortovara_1">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_UpdateStock_di" bpmnElement="Activity_UpdateStock">
-        <dc:Bounds x="570" y="170" width="100" height="80" />
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_WMSotgruzkatovara">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_WMSotgruzkatovara" bpmnElement="Activity_WMSotgruzkatovara">
+      <bpmndi:BPMNShape id="Activity_BI_WMSotgruzkatovara_1_di" bpmnElement="Activity_BI_WMSotgruzkatovara_1">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_ReceiptEnd_di" bpmnElement="Event_ReceiptEnd">
-        <dc:Bounds x="682" y="192" width="36" height="36" />
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_WMSinventarizaciya">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_WMSinventarizaciya" bpmnElement="Activity_WMSinventarizaciya">
+      <bpmndi:BPMNShape id="Activity_BI_WMSinventarizaciya_1_di" bpmnElement="Activity_BI_WMSinventarizaciya_1">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_ReceiptTask_di" bpmnElement="Flow_ReceiptTask">
-        <di:waypoint x="236" y="210" />
-        <di:waypoint x="290" y="210" />
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_BI_WMSpriemkatovara_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_BI_WMSpriemkatovara_1" bpmnElement="Activity_BI_WMSpriemkatovara_1">
+      <bpmndi:BPMNShape id="Activity_WMSpriemkatovara11_di" bpmnElement="Activity_WMSpriemkatovara11">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WMSpriemkatovara12_di" bpmnElement="Activity_WMSpriemkatovara12">
+        <dc:Bounds x="330" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WMSpriemkatovara13_di" bpmnElement="Activity_WMSpriemkatovara13">
+        <dc:Bounds x="470" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="WMSpriemkatovara1F1_di" bpmnElement="WMSpriemkatovara1F1">
+        <di:waypoint x="280" y="190" />
+        <di:waypoint x="330" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ValidateReceipt_di" bpmnElement="Flow_ValidateReceipt">
-        <di:waypoint x="390" y="210" />
-        <di:waypoint x="430" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_UpdateStock_di" bpmnElement="Flow_UpdateStock">
-        <di:waypoint x="530" y="210" />
-        <di:waypoint x="570" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ReceiptEnd_di" bpmnElement="Flow_ReceiptEnd">
-        <di:waypoint x="670" y="210" />
-        <di:waypoint x="682" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_WMS_Login_di" bpmnElement="Activity_WMS_Login">
-        <dc:Bounds x="20" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_ReceiptStart_di" bpmnElement="Flow_ReceiptStart">
-        <di:waypoint x="120" y="210" />
-        <di:waypoint x="160" y="210" />
+      <bpmndi:BPMNEdge id="WMSpriemkatovara1F2_di" bpmnElement="WMSpriemkatovara1F2">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="470" y="190" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_Placement">
-    <bpmndi:BPMNPlane id="BPMNPlane_Placement" bpmnElement="Activity_Placement">
-      <bpmndi:BPMNShape id="Activity_WMS_Placement_di" bpmnElement="Activity_WMS_Placement" isExpanded="true">
-        <dc:Bounds x="160" y="110" width="530" height="200" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_BI_WMSrazmeschenietovara_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_BI_WMSrazmeschenietovara_1" bpmnElement="Activity_BI_WMSrazmeschenietovara_1">
+      <bpmndi:BPMNShape id="Activity_WMSrazmeschenietovara11_di" bpmnElement="Activity_WMSrazmeschenietovara11">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_PlacementStart_di" bpmnElement="Event_PlacementStart">
-        <dc:Bounds x="200" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_DetermineLocation_di" bpmnElement="Activity_DetermineLocation">
-        <dc:Bounds x="290" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSrazmeschenietovara12_di" bpmnElement="Activity_WMSrazmeschenietovara12">
+        <dc:Bounds x="330" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_PlacementTask_di" bpmnElement="Activity_PlacementTask">
-        <dc:Bounds x="430" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSrazmeschenietovara13_di" bpmnElement="Activity_WMSrazmeschenietovara13">
+        <dc:Bounds x="470" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_UpdateLocation_di" bpmnElement="Activity_UpdateLocation">
-        <dc:Bounds x="570" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_PlacementEnd_di" bpmnElement="Event_PlacementEnd">
-        <dc:Bounds x="682" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_DetermineLocation_di" bpmnElement="Flow_DetermineLocation">
-        <di:waypoint x="236" y="210" />
-        <di:waypoint x="290" y="210" />
+      <bpmndi:BPMNEdge id="WMSrazmeschenietovara1F1_di" bpmnElement="WMSrazmeschenietovara1F1">
+        <di:waypoint x="280" y="190" />
+        <di:waypoint x="330" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_PlacementTask_di" bpmnElement="Flow_PlacementTask">
-        <di:waypoint x="390" y="210" />
-        <di:waypoint x="430" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_UpdateLocation_di" bpmnElement="Flow_UpdateLocation">
-        <di:waypoint x="530" y="210" />
-        <di:waypoint x="570" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_PlacementEnd_di" bpmnElement="Flow_PlacementEnd">
-        <di:waypoint x="670" y="210" />
-        <di:waypoint x="682" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_WMS_PlacementLogin_di" bpmnElement="Activity_WMS_PlacementLogin">
-        <dc:Bounds x="20" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_PlacementStart_di" bpmnElement="Flow_PlacementStart">
-        <di:waypoint x="120" y="210" />
-        <di:waypoint x="160" y="210" />
+      <bpmndi:BPMNEdge id="WMSrazmeschenietovara1F2_di" bpmnElement="WMSrazmeschenietovara1F2">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="470" y="190" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_Picking">
-    <bpmndi:BPMNPlane id="BPMNPlane_Picking" bpmnElement="Activity_Picking">
-      <bpmndi:BPMNShape id="Activity_WMS_Picking_di" bpmnElement="Activity_WMS_Picking" isExpanded="true">
-        <dc:Bounds x="160" y="110" width="530" height="200" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_BI_WMSotbortovara_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_BI_WMSotbortovara_1" bpmnElement="Activity_BI_WMSotbortovara_1">
+      <bpmndi:BPMNShape id="Activity_WMSotbortovara11_di" bpmnElement="Activity_WMSotbortovara11">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_PickingStart_di" bpmnElement="Event_PickingStart">
-        <dc:Bounds x="200" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_OptimizeRoute_di" bpmnElement="Activity_OptimizeRoute">
-        <dc:Bounds x="290" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSotbortovara12_di" bpmnElement="Activity_WMSotbortovara12">
+        <dc:Bounds x="330" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_PickingTask_di" bpmnElement="Activity_PickingTask">
-        <dc:Bounds x="430" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSotbortovara13_di" bpmnElement="Activity_WMSotbortovara13">
+        <dc:Bounds x="470" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_ConfirmPicking_di" bpmnElement="Activity_ConfirmPicking">
-        <dc:Bounds x="570" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_PickingEnd_di" bpmnElement="Event_PickingEnd">
-        <dc:Bounds x="682" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_OptimizeRoute_di" bpmnElement="Flow_OptimizeRoute">
-        <di:waypoint x="236" y="210" />
-        <di:waypoint x="290" y="210" />
+      <bpmndi:BPMNEdge id="WMSotbortovara1F1_di" bpmnElement="WMSotbortovara1F1">
+        <di:waypoint x="280" y="190" />
+        <di:waypoint x="330" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_PickingTask_di" bpmnElement="Flow_PickingTask">
-        <di:waypoint x="390" y="210" />
-        <di:waypoint x="430" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ConfirmPicking_di" bpmnElement="Flow_ConfirmPicking">
-        <di:waypoint x="530" y="210" />
-        <di:waypoint x="570" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_PickingEnd_di" bpmnElement="Flow_PickingEnd">
-        <di:waypoint x="670" y="210" />
-        <di:waypoint x="682" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_WMS_PickingLogin_di" bpmnElement="Activity_WMS_PickingLogin">
-        <dc:Bounds x="20" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_PickingStart_di" bpmnElement="Flow_PickingStart">
-        <di:waypoint x="120" y="210" />
-        <di:waypoint x="160" y="210" />
+      <bpmndi:BPMNEdge id="WMSotbortovara1F2_di" bpmnElement="WMSotbortovara1F2">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="470" y="190" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_Shipment">
-    <bpmndi:BPMNPlane id="BPMNPlane_Shipment" bpmnElement="Activity_Shipment">
-      <bpmndi:BPMNShape id="Activity_WMS_Shipment_di" bpmnElement="Activity_WMS_Shipment" isExpanded="true">
-        <dc:Bounds x="160" y="110" width="640" height="200" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_BI_WMSotgruzkatovara_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_BI_WMSotgruzkatovara_1" bpmnElement="Activity_BI_WMSotgruzkatovara_1">
+      <bpmndi:BPMNShape id="Activity_WMSotgruzkatovara11_di" bpmnElement="Activity_WMSotgruzkatovara11">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_ShipmentStart_di" bpmnElement="Event_ShipmentStart">
-        <dc:Bounds x="200" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_PrepareShipment_di" bpmnElement="Activity_PrepareShipment">
-        <dc:Bounds x="290" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSotgruzkatovara12_di" bpmnElement="Activity_WMSotgruzkatovara12">
+        <dc:Bounds x="330" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_ShipmentTask_di" bpmnElement="Activity_ShipmentTask">
-        <dc:Bounds x="430" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSotgruzkatovara13_di" bpmnElement="Activity_WMSotgruzkatovara13">
+        <dc:Bounds x="470" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_UpdateStockShipment_di" bpmnElement="Activity_UpdateStockShipment">
-        <dc:Bounds x="570" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSotgruzkatovara14_di" bpmnElement="Activity_WMSotgruzkatovara14">
+        <dc:Bounds x="610" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_CreateDocuments_di" bpmnElement="Activity_CreateDocuments">
-        <dc:Bounds x="710" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_ShipmentEnd_di" bpmnElement="Event_ShipmentEnd">
-        <dc:Bounds x="832" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_PrepareShipment_di" bpmnElement="Flow_PrepareShipment">
-        <di:waypoint x="236" y="210" />
-        <di:waypoint x="290" y="210" />
+      <bpmndi:BPMNEdge id="WMSotgruzkatovara1F1_di" bpmnElement="WMSotgruzkatovara1F1">
+        <di:waypoint x="280" y="190" />
+        <di:waypoint x="330" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ShipmentTask_di" bpmnElement="Flow_ShipmentTask">
-        <di:waypoint x="390" y="210" />
-        <di:waypoint x="430" y="210" />
+      <bpmndi:BPMNEdge id="WMSotgruzkatovara1F2_di" bpmnElement="WMSotgruzkatovara1F2">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="470" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_UpdateStockShipment_di" bpmnElement="Flow_UpdateStockShipment">
-        <di:waypoint x="530" y="210" />
-        <di:waypoint x="570" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_CreateDocuments_di" bpmnElement="Flow_CreateDocuments">
-        <di:waypoint x="670" y="210" />
-        <di:waypoint x="710" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_ShipmentEnd_di" bpmnElement="Flow_ShipmentEnd">
-        <di:waypoint x="810" y="210" />
-        <di:waypoint x="832" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_WMS_ShipmentLogin_di" bpmnElement="Activity_WMS_ShipmentLogin">
-        <dc:Bounds x="20" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_ShipmentStart_di" bpmnElement="Flow_ShipmentStart">
-        <di:waypoint x="120" y="210" />
-        <di:waypoint x="160" y="210" />
+      <bpmndi:BPMNEdge id="WMSotgruzkatovara1F3_di" bpmnElement="WMSotgruzkatovara1F3">
+        <di:waypoint x="560" y="190" />
+        <di:waypoint x="610" y="190" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_Inventory">
-    <bpmndi:BPMNPlane id="BPMNPlane_Inventory" bpmnElement="Activity_Inventory">
-      <bpmndi:BPMNShape id="Activity_WMS_Inventory_di" bpmnElement="Activity_WMS_Inventory" isExpanded="true">
-        <dc:Bounds x="160" y="110" width="640" height="200" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_BI_WMSinventarizaciya_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_BI_WMSinventarizaciya_1" bpmnElement="Activity_BI_WMSinventarizaciya_1">
+      <bpmndi:BPMNShape id="Activity_WMSinventarizaciya11_di" bpmnElement="Activity_WMSinventarizaciya11">
+        <dc:Bounds x="190" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_InventoryStart_di" bpmnElement="Event_InventoryStart">
-        <dc:Bounds x="200" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_StartInventory_di" bpmnElement="Activity_StartInventory">
-        <dc:Bounds x="290" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSinventarizaciya12_di" bpmnElement="Activity_WMSinventarizaciya12">
+        <dc:Bounds x="330" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_InventoryTask_di" bpmnElement="Activity_InventoryTask">
-        <dc:Bounds x="430" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_WMSinventarizaciya13_di" bpmnElement="Activity_WMSinventarizaciya13">
+        <dc:Bounds x="470" y="150" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_CompareData_di" bpmnElement="Activity_CompareData">
-        <dc:Bounds x="570" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_CompleteInventory_di" bpmnElement="Activity_CompleteInventory">
-        <dc:Bounds x="710" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_InventoryEnd_di" bpmnElement="Event_InventoryEnd">
-        <dc:Bounds x="832" y="192" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_StartInventory_di" bpmnElement="Flow_StartInventory">
-        <di:waypoint x="236" y="210" />
-        <di:waypoint x="290" y="210" />
+      <bpmndi:BPMNEdge id="WMSinventarizaciya1F1_di" bpmnElement="WMSinventarizaciya1F1">
+        <di:waypoint x="280" y="190" />
+        <di:waypoint x="330" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_InventoryTask_di" bpmnElement="Flow_InventoryTask">
-        <di:waypoint x="390" y="210" />
-        <di:waypoint x="430" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_CompareData_di" bpmnElement="Flow_CompareData">
-        <di:waypoint x="530" y="210" />
-        <di:waypoint x="570" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_CompleteInventory_di" bpmnElement="Flow_CompleteInventory">
-        <di:waypoint x="670" y="210" />
-        <di:waypoint x="710" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_InventoryEnd_di" bpmnElement="Flow_InventoryEnd">
-        <di:waypoint x="810" y="210" />
-        <di:waypoint x="832" y="210" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_WMS_InventoryLogin_di" bpmnElement="Activity_WMS_InventoryLogin">
-        <dc:Bounds x="20" y="170" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_InventoryStart_di" bpmnElement="Flow_InventoryStart">
-        <di:waypoint x="120" y="210" />
-        <di:waypoint x="160" y="210" />
+      <bpmndi:BPMNEdge id="WMSinventarizaciya1F2_di" bpmnElement="WMSinventarizaciya1F2">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="470" y="190" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
-
