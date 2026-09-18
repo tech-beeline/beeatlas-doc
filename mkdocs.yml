@@ -8,9 +8,13 @@ site_url: https://beeatlas-doc.example.com
 docs_dir: docs
 strict: false
 
-# Включаем каталог templates (по умолчанию MkDocs его исключает)
+# Включаем каталог templates (по умолчанию MkDocs его исключает).
+# __pycache__ исключаем: он появляется, если запустить gen_cj_bpmn.py из каталога доки
+# (скрипт импортирует validate_cj_bpmn), и иначе .pyc уезжает в собранный сайт.
 exclude_docs: |
   !/templates/
+  __pycache__/
+  *.pyc
 
 theme:
   name: material

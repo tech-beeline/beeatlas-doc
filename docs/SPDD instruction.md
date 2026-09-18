@@ -19,6 +19,10 @@ project/
 │   ├── adr-template.md          # Шаблон ADR (Architecture Decision Record)
 │   ├── cj_prompt.md             # Промпт для создания Customer Journey BPMN
 │   ├── cj_template.bpmn         # Пример CJ в формате Camunda Modeler
+│   ├── scripts/                 # Проверка и генерация CJ-файлов (Python 3)
+│   │   ├── validate_cj_bpmn.py  # Валидатор .bpmn по требованиям парсера BeeAtlas
+│   │   ├── gen_cj_bpmn.py       # Генератор .bpmn из JSON-спецификации
+│   │   └── inspect_bpmn.py      # Структурный дайджест для сверки с эталоном
 │   ├── reasons-canvas-template.md # Шаблон REASONS Canvas
 │   └── workspace.dsl            # Шаблон архитектуры в Structurizr DSL
 ├── documentation/
@@ -38,6 +42,7 @@ project/
 | **ADR** | Architecture Decision Record — фиксация архитектурных решений | [`templates/adr-template.md`](spdd_templates/adr-template.md) |
 | **CJ Prompt** | Промпт для создания Customer Journey в BPMN 2.0 | [`templates/cj_prompt.md`](spdd_templates/cj_prompt.md) |
 | **CJ Template** | Пример Customer Journey в формате Camunda Modeler | [`templates/cj_template.bpmn`](spdd_templates/cj_template.bpmn) |
+| **CJ Scripts** | Проверка и генерация `.bpmn` (нужен Python 3): [`validate_cj_bpmn.py`](spdd_templates/scripts/validate_cj_bpmn.py) — валидатор по требованиям парсера BeeAtlas, [`gen_cj_bpmn.py`](spdd_templates/scripts/gen_cj_bpmn.py) — генератор из JSON-спецификации, [`inspect_bpmn.py`](spdd_templates/scripts/inspect_bpmn.py) — структурный дайджест, [`spec-cjm13.json`](spdd_templates/scripts/examples/spec-cjm13.json) — пример спецификации. Описание и примеры запуска — в [README каталога](spdd_templates/scripts/README.md) |
 | **Workspace DSL** | Шаблон архитектуры в нотации Structurizr DSL | [`templates/workspace.dsl`](spdd_templates/workspace.dsl) |
 | **create-specification** | Основной промпт для генерации всех артефактов проекта | [`documentation/prompts/create-specification.md`](spdd_templates/create-specification.md) |
 

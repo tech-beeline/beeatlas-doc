@@ -1,0 +1,34 @@
+{
+  "process_id": "Process_BeeAtlas_CJM13",
+  "definitions_id": "Definitions_beeatlas_cjm13",
+  "stages": [
+    {
+      "name": "Поиск приложения",
+      "bis": [
+        {
+          "name": "BI Поиск приложения",
+          "steps": [
+            { "type": "userTask", "name": "Открыть каталог приложений" },
+            { "type": "serviceTask", "name": "Список приложений для каталога: GET /api-gateway/product/v1/product/info" },
+            { "type": "userTask", "name": "Найти приложение по названию или CMDB-мнемонике" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Изучение паспорта",
+      "bis": [
+        {
+          "name": "BI Изучение паспорта",
+          "steps": [
+            { "type": "userTask", "name": "Открыть карточку приложения" },
+            { "type": "serviceTask", "name": "Карточка приложения: GET /api-gateway/product/v1/product/{cmdb}/info" },
+            { "type": "userTask", "name": "Пройти по вкладкам" },
+            { "type": "serviceTask", "name": "Данные вкладки «Фитнес-функции»: GET /product/api/v1/product/{cmdb}/fitness-function" },
+            { "type": "serviceTask", "name": "Технические возможности приложения: GET /capability/api/v1/tech-capabilities/product/{id}" }
+          ]
+        }
+      ]
+    }
+  ]
+}
