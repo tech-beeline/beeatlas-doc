@@ -93,6 +93,7 @@ nav:
     - Модели: beeatlas-docs/models.md
     - База знаний: beeatlas-docs/database.md
     - CX (Customer Experience): beeatlas-docs/cx.md
+    - Проекты: beeatlas-docs/projects.md
     - Инструкции:
         - Критерии карты возможностей: beeatlas-docs/instruction/calc_criterion.md
         - Работа с НФТ и паттернами: beeatlas-docs/instruction/nft_pattern.md

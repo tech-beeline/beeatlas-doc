@@ -1,3 +1,6 @@
+.idea/*
+*.iml
+
 # MkDocs
 site/
 
@@ -8,3 +11,5 @@ __pycache__/
 *.pyc
 *.pyo
 run.sh
+*.zip
+.DS_Store
