@@ -7,7 +7,7 @@
 ![cx](images/cx.png)
 
 - [Библиотека CJ (Customer Journey)](#библиотека-cj-customer-journey)
-- [Библиотека BI (Business Interaction)](#библиотека-bi-business-interaction)
+- [Библиотека BI (Business Interaction)](#библиотека-bi)
 
 ## Библиотека CJ (Customer Journey)
 

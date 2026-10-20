@@ -52,11 +52,13 @@ fitness_check:
 
 ```
 
-**Примечание:** если вы используете диаграммы с ручной расстановкой элементов, сохраняемые в workspace.json то команду в последнем этапе нужно заменить на:
+**Примечание:** По умолчанию, происходит публикация архитектуры, расположенной в workspace.dsl (и вложенных в него файлов) в корневой директории. Однако, если в корне директории расположен workspace.json - то публикуется он. Это сделано на случай, если вы используете ручную расстановку элементов на диаграмме.
+Если вы помещаете workspace.json в git, то не забывайте его обновлять перед публикацией!
 
 ```yaml
    - /usr/local/structurizr-cli/structurizr.sh push -url https://structurizr.example.ru/api -id $STRUCTURIZR_WORKSPACE_ID -key $STRUCTURIZR_API_KEY -secret $STRUCTURIZR_API_SECRET -merge false -workspace workspace.json
 ```
+
 
 #### Установка переменных, необходимых для работы pipeline
 
@@ -67,5 +69,5 @@ fitness_check:
 |Имя переменной|Описание|пример значения|
 |--------------|--------|---------------|
 |STRUCTURIZR_WORKSPACE_ID|идентификатор вашего workspace|5|
-|STRUCTURIZR_API_KEY|ключ для доступа к вашему workspace|1a62386d-daf1-4408-9a64-1305ba909f10|
-|STRUCTURIZR_API_SECRET|секрет для доступа к вашему workspace|1a62386d-daf1-4408-9a64-1305ba909f10|
+|STRUCTURIZR_API_KEY|ключ для доступа к вашему workspace|$STRUCTURIZR_API_KEY|
+|STRUCTURIZR_API_SECRET|секрет для доступа к вашему workspace|STRUCTURIZR_API_SECRET|
