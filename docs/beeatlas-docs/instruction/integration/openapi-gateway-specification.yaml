@@ -1,0 +1,2249 @@
+openapi: 3.0.3
+info:
+  title: FDM Gateway API Specification
+  description: |
+    OpenAPI спецификация для fdm-gateway — единой точки входа в экосистему FDM.
+    Все запросы к микросервисам проходят через шлюз с HMAC-аутентификацией.
+    Маршрутизация осуществляется по префиксу пути к соответствующему бэкенд-сервису.
+  version: 1.0.0
+
+servers:
+  - url: https://fdm-gateway.example.com
+    description: Production gateway
+
+tags:
+  - name: fdm-products
+    description: Сервис управления продуктами
+  - name: capability-backend
+    description: Сервис бизнес- и технических возможностей
+  - name: techradar-backend
+    description: Сервис реестра технологий
+  - name: cx-backend
+    description: Сервис customer experience
+  - name: document-service
+    description: Сервис управления документами
+  - name: structurizr-backend
+    description: Сервис интеграции с Structurizr
+  - name: fdm-notifications-management
+    description: Сервис управления уведомлениями
+  - name: fdm-pack-loader
+    description: Сервис загрузки пакетов
+  - name: fdm-auth
+    description: Сервис аутентификации и авторизации
+  - name: architect-graph-service
+    description: Сервис архитектурных графов
+
+paths:
+  # ============================================================================
+  # fdm-products
+  # ============================================================================
+
+  /product/api/v1/product/{code}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Код или alias продукта
+    put:
+      tags:
+        - fdm-products
+      summary: Создание/обновление продукта по коду
+      description: Создание или обновление продукта по коду (alias).
+      operationId: createOrUpdateProductByCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses:
+        '200':
+          description: Успешное выполнение
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Продукт не найден
+        '409':
+          description: Конфликт
+
+    get:
+      tags:
+        - fdm-products
+      summary: Информация о продукте
+      description: Возвращает информацию о продукте, включая список технологий.
+      operationId: getProductByCode
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductFull'
+        '404':
+          description: Продукт не найден
+
+  /product/api/v1/product/{id}:
+    delete:
+      tags:
+        - fdm-products
+      summary: Удаление продукта
+      description: Удаление продукта по ID (активно при app.force-app-delete=true).
+      operationId: deleteProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Идентификатор продукта
+      responses:
+        '200':
+          description: Успешное удаление
+        '404':
+          description: Продукт не найден
+
+  /product/api/v1/products:
+    get:
+      tags:
+        - fdm-products
+      summary: Список продуктов
+      description: Краткий список продуктов без structurizr-ключей.
+      operationId: listProducts
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductShort'
+
+  /product/api/v1/products/mnemonic:
+    get:
+      tags:
+        - fdm-products
+      summary: Все мнемоники продуктов
+      description: Возвращает все мнемоники продуктов.
+      operationId: listProductMnemonics
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /product/api/v1/product/{code}/relations:
+    put:
+      tags:
+        - fdm-products
+      summary: Создание/обновление связей продукта
+      description: Создание/обновление связей (контейнеры, интерфейсы, методы).
+      operationId: updateProductRelations
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Код/alias продукта
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Источник данных связей
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Container'
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '207':
+          description: Ошибки валидации связей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '400':
+          description: Ошибка валидации
+
+  /product/api/v1/product-tech-relation/{techId}:
+    post:
+      tags:
+        - fdm-products
+      summary: Связь технологии и продукта
+      description: Добавляет связь продукта с технологией по techId.
+      operationId: linkProductToTech
+      parameters:
+        - name: techId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Идентификатор технологии
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductTechRelation'
+      responses:
+        '200':
+          description: Успешное выполнение
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Технология или продукт не найдены
+
+  
+  # ============================================================================
+  # capability-backend
+  # ============================================================================
+  /capability/api/v1/business-capability:
+    put:
+      tags:
+        - capability-backend
+      summary: Создание/обновление бизнес-возможности
+      description: Создаёт или обновляет BC с учётом прав пользователя.
+      operationId: createOrUpdateBusinessCapability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BusinessCapability'
+      responses:
+        '200':
+          description: Успешное выполнение
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '409':
+          description: Конфликт
+
+    get:
+      tags:
+        - capability-backend
+      summary: Список бизнес-возможностей
+      description: Возвращает список BC с пагинацией.
+      operationId: listBusinessCapabilities
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          description: Лимит записей
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Смещение
+        - name: findBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ALL
+          description: Режим выборки
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessCapabilityShort'
+
+  /capability/api/v1/tech-capabilities:
+    put:
+      tags:
+        - capability-backend
+      summary: Создание/обновление технической возможности
+      description: Создаёт или обновляет TC.
+      operationId: createOrUpdateTechCapability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TechCapability'
+      responses:
+        '200':
+          description: Успешное выполнение
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Конфликт
+
+    get:
+      tags:
+        - capability-backend
+      summary: Список технических возможностей
+      description: Возвращает постраничный список TC.
+      operationId: listTechCapabilities
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+          description: Лимит записей
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Смещение
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TechCapability'
+
+  /capability/api/v1/criterias:
+    put:
+      tags:
+        - capability-backend
+      summary: Создание/обновление критерия оценки
+      description: Создаёт или обновляет критерий оценки TC/BC в справочнике.
+      operationId: createOrUpdateCriterion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - interval
+                - minDesc
+                - maxDesc
+              properties:
+                name:
+                  type: string
+                  description: Название критерия
+                description:
+                  type: string
+                  description: Описание критерия
+                type:
+                  type: string
+                  description: Тип критерия
+                interval:
+                  type: integer
+                  description: Интервал оценки
+                threshold:
+                  type: integer
+                  description: Пороговое значение
+                revers:
+                  type: boolean
+                  description: Флаг реверса (по умолчанию false)
+                minDesc:
+                  type: string
+                  description: Описание минимального значения
+                maxDesc:
+                  type: string
+                  description: Описание максимального значения
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Идентификатор критерия
+                  name:
+                    type: string
+                    description: Название критерия
+                  description:
+                    type: string
+                    description: Описание критерия
+                  type:
+                    type: string
+                    description: Тип критерия
+                  interval:
+                    type: integer
+                    description: Интервал оценки
+                  threshold:
+                    type: integer
+                    description: Пороговое значение
+                  revers:
+                    type: boolean
+                    description: Флаг реверса
+                  minDesc:
+                    type: string
+                    description: Описание минимального значения
+                  maxDesc:
+                    type: string
+                    description: Описание максимального значения
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMessage:
+                    type: string
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMessage:
+                    type: string
+
+    post:
+      tags:
+        - capability-backend
+      summary: Создание/обновление записи о критерии для BC/TC
+      description: Создаёт или обновляет запись о критерии оценки для бизнес- или технической возможности.
+      operationId: createOrUpdateCriterionAssignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - code
+                - criterionName
+                - value
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - business_capability
+                    - tech_capability
+                  description: Тип сущности
+                code:
+                  type: string
+                  description: Код сущности (BC или TC)
+                criterionName:
+                  type: string
+                  description: Название критерия
+                value:
+                  type: integer
+                  description: Значение оценки
+                grade:
+                  type: integer
+                  description: Оценка (может быть null)
+                comment:
+                  type: string
+                  description: Комментарий (может быть null)
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Идентификатор записи
+                  criterion_id:
+                    type: integer
+                    description: Идентификатор критерия
+                  value:
+                    type: integer
+                    description: Значение оценки
+                  grade:
+                    type: integer
+                    description: Оценка
+                  tcId:
+                    type: integer
+                    description: Идентификатор TC (для tech_capability)
+                  bcId:
+                    type: integer
+                    description: Идентификатор BC (для business_capability)
+                  comment:
+                    type: string
+                    description: Комментарий
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMessage:
+                    type: string
+
+  # ============================================================================
+  # techradar-backend
+  # ============================================================================
+  /techradar/api/v1/tech:
+    post:
+      tags:
+        - techradar-backend
+      summary: Пакетное создание технологий
+      description: Пакетное создание технологий. Доступно только роли ADMINISTRATOR.
+      operationId: createTechnologies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TechCreate'
+      responses:
+        '201':
+          description: Успешное создание
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TechCreated'
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '409':
+          description: Конфликт (дубликат label)
+
+    get:
+      tags:
+        - techradar-backend
+      summary: Список технологий
+      description: Возвращает список технологий с версиями и историей.
+      operationId: listTechnologies
+      parameters:
+        - name: actualTech
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Фильтр только актуальных технологий
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TechAdvanced'
+
+  # ============================================================================
+  # cx-backend
+  # ============================================================================
+  /cx/api/v1/product/{productId}/cj:
+    post:
+      tags:
+        - cx-backend
+      summary: Создание CJ для продукта
+      description: Создаёт новый CJ для указанного продукта.
+      operationId: createCJ
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Идентификатор продукта
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CJCreate'
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CJ'
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Продукт не найден
+
+  /cx/api/v1/product/cj/{id}:
+    get:
+      tags:
+        - cx-backend
+      summary: CJ по идентификатору
+      description: Возвращает полное представление CJ по идентификатору.
+      operationId: getCJById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Идентификатор CJ
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CJFull'
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: CJ не найден
+
+  # ============================================================================
+  # document-service
+  # ============================================================================
+  /document/api/v1/documents/{id}:
+    get:
+      tags:
+        - document-service
+      summary: Скачивание документа
+      description: Скачивание файла документа по внутреннему id.
+      operationId: downloadDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Идентификатор документа
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Документ не найден
+        '503':
+          description: Ошибка MinIO
+
+  /document/api/v1/documents/{path_name}/{doc_type}:
+    post:
+      tags:
+        - document-service
+      summary: Загрузка документа
+      description: Загрузка документа (multipart) в каталог.
+      operationId: uploadDocument
+      parameters:
+        - name: path_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Имя каталога
+        - name: doc_type
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Тип документа
+        - name: isPublic
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Публичный документ
+        - name: targetId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Идентификатор целевой сущности
+        - name: ttl
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Срок жизни в сутках
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Успешное создание
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentCreated'
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Документ не найден
+        '503':
+          description: Ошибка MinIO
+
+  # ============================================================================
+  # structurizr-backend
+  # ============================================================================
+  /structurizr-backend/api/v1/workspace:
+    post:
+      tags:
+        - structurizr-backend
+      summary: Создание Structurizr workspace
+      description: Создание Structurizr workspace, публикация шаблона.
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCreate'
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Продукт не найден
+        '422':
+          description: Невалидный запрос
+        '409':
+          description: Конфликт
+
+  # ============================================================================
+  # fdm-pack-loader
+  # ============================================================================
+  /package/api/v1/packages-list:
+    get:
+      tags:
+        - fdm-pack-loader
+      summary: Список пакетов
+      description: Постраничный список пакетов с фильтрацией по статусу.
+      operationId: listPackages
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - none
+              - SUCCESS
+              - ERROR
+              - WARNING
+              - PROCESS
+            default: none
+          description: Статус пакета
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 15
+          description: Лимит записей
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Смещение
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackagesPage'
+        '403':
+          description: Недостаточно прав
+
+  # ============================================================================
+  # architect-graph-service
+  # ============================================================================
+  /arch-graph/api/v1/elements:
+    get:
+      tags:
+        - architect-graph-service
+      summary: Выполнение Cypher-запроса
+      description: Выполнение произвольного Cypher-запроса к Neo4j.
+      operationId: executeCypherQuery
+      parameters:
+        - name: CYPHER-QUERY
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Текст запроса Cypher
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '400':
+          description: Ошибка валидации
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Не найдено
+        '503':
+          description: Neo4j недоступен
+
+  # ============================================================================
+  # fdm-auth
+  # ============================================================================
+  /user/api/v1/user/{id}:
+    get:
+      tags:
+        - fdm-auth
+      summary: Получить информацию о пользователе по ID
+      description: Получение информации о пользователе по его ID.
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserFull'
+        '404':
+          description: Пользователь не найден
+
+  /user/api/v1/user:
+    get:
+      tags:
+        - fdm-auth
+      summary: Получить информацию о пользователе
+      description: Получение информации о текущем авторизованном пользователе.
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserFull'
+
+  /user/api/v1/users:
+    get:
+      tags:
+        - fdm-auth
+      summary: Получить список пользователей
+      description: Получение списка всех пользователей.
+      operationId: listUsers
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Номер страницы
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Размер страницы
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+
+    post:
+      tags:
+        - fdm-auth
+      summary: Создать пользователя
+      description: Создание нового пользователя.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreated'
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Пользователь с таким логином уже существует
+
+  /user/api/admin/v1/roles:
+    get:
+      tags:
+        - fdm-auth
+      summary: Получить список ролей
+      description: Получение списка всех ролей системы.
+      operationId: listRoles
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+
+    post:
+      tags:
+        - fdm-auth
+      summary: Создать роль
+      description: Создание новой роли в системе.
+      operationId: createRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreate'
+      responses:
+        '201':
+          description: Роль создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Роль с таким названием уже существует
+
+  /user/api/admin/v1/roles/{id}:
+    get:
+      tags:
+        - fdm-auth
+      summary: Получить роль по ID
+      description: Получение информации о роли по её ID.
+      operationId: getRoleById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID роли
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '404':
+          description: Роль не найдена
+
+    delete:
+      tags:
+        - fdm-auth
+      summary: Удалить роль
+      description: Удаление роли по её ID.
+      operationId: deleteRole
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID роли
+      responses:
+        '204':
+          description: Роль удалена
+        '404':
+          description: Роль не найдена
+
+  /user/api/admin/v1/roles/{id}/permissions:
+    put:
+      tags:
+        - fdm-auth
+      summary: Обновить разрешения роли
+      description: Обновление списка разрешений для роли.
+      operationId: updateRolePermissions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID роли
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                  description: Список названий разрешений
+      responses:
+        '200':
+          description: Успешное выполнение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Роль не найдена
+
+components:
+  schemas:
+    # fdm-products
+    ProductCreateUpdate:
+      type: object
+      required:
+        - alias
+        - name
+      properties:
+        alias:
+          type: string
+          description: Alias продукта
+        name:
+          type: string
+          description: Название продукта
+        description:
+          type: string
+          description: Описание
+        gitUrl:
+          type: string
+          format: uri
+          description: URL репозитория
+        ownerId:
+          type: integer
+          description: ID владельца
+        critical:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - CRITICAL
+          description: Критичность
+        employeesIds:
+          type: array
+          items:
+            type: integer
+          description: ID сотрудников
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        gitUrl:
+          type: string
+          format: uri
+        structurizrWorkspaceName:
+          type: string
+        structurizrApiKey:
+          type: string
+        structurizrApiSecret:
+          type: string
+        structurizrApiUrl:
+          type: string
+          format: uri
+
+    ProductInfoV1:
+      type: object
+      properties:
+        alias:
+          type: string
+        description:
+          type: string
+        gitUrl:
+          type: string
+          format: uri
+        id:
+          type: string
+        name:
+          type: string
+        structurizrApiUrl:
+          type: string
+          format: uri
+        structurizrWorkspaceName:
+          type: string
+        techProducts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechProduct'
+        critical:
+          type: string
+        ownerName:
+          type: string
+        ownerEmail:
+          type: string
+
+    ProductFull:
+      type: object
+      properties:
+        id:
+          type: integer
+        alias:
+          type: string
+        critical:
+          type: string
+        description:
+          type: string
+        discoveredInterfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscoveredInterface'
+        gitUrl:
+          type: string
+          format: uri
+        name:
+          type: string
+        ownerID:
+          type: integer
+        ownerName:
+          type: string
+        ownerEmail:
+          type: string
+        source:
+          type: string
+        structurizrApiKey:
+          type: string
+        structurizrApiSecret:
+          type: string
+        structurizrApiUrl:
+          type: string
+          format: uri
+        structurizrWorkspaceName:
+          type: string
+
+    ProductShort:
+      type: object
+      properties:
+        alias:
+          type: string
+        description:
+          type: string
+        gitUrl:
+          type: string
+          format: uri
+        id:
+          type: string
+        name:
+          type: string
+        structurizrApiUrl:
+          type: string
+          format: uri
+        structurizrWorkspaceName:
+          type: string
+        uploadSource:
+          type: string
+        uploadDate:
+          type: string
+          format: date-time
+        ownerName:
+          type: string
+        critical:
+          type: string
+
+    TechProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+        techId:
+          type: integer
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedDate:
+          type: string
+          format: date-time
+        deletedDate:
+          type: string
+          format: date-time
+        source:
+          type: string
+
+    DiscoveredInterface:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        externalId:
+          type: integer
+        apiId:
+          type: integer
+        connectionInterfaceId:
+          type: integer
+        apiLink:
+          type: string
+          format: uri
+        version:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        context:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+        deletedDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
+
+    Container:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        version:
+          type: string
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interface'
+
+    Interface:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        version:
+          type: string
+        specification:
+          type: string
+          format: uri
+        capabilityCode:
+          type: string
+        protocol:
+          type: string
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/Method'
+
+    Method:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        returnType:
+          type: string
+        capabilityCode:
+          type: string
+        type:
+          type: string
+        parameters:
+          type: array
+          items:
+            type: object
+            properties:
+              parameterName:
+                type: string
+              parameterType:
+                type: string
+        sla:
+          $ref: '#/components/schemas/SLA'
+
+    SLA:
+      type: object
+      properties:
+        rps:
+          type: integer
+        latency:
+          type: integer
+        error_rate:
+          type: number
+
+    ProductTechRelation:
+      type: object
+      required:
+        - cmdb_code
+      properties:
+        cmdb_code:
+          type: string
+          description: CMDB-код продукта
+
+    NFRCreate:
+      type: object
+      required:
+        - name
+        - description
+        - rule
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        rule:
+          type: string
+        chapters:
+          type: array
+          items:
+            type: integer
+          description: ID жизненных ситуаций
+        patterns:
+          type: array
+          items:
+            type: integer
+          description: ID паттернов
+
+    NFRResponse:
+      type: object
+      properties:
+        coreId:
+          type: integer
+        versionId:
+          type: integer
+
+    NFR:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        version:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        fitnessFunctions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FitnessFunction'
+        chapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chapter'
+        patterns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pattern'
+
+    FitnessFunction:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        description:
+          type: string
+        docLink:
+          type: string
+          format: uri
+
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        docLink:
+          type: string
+          format: uri
+        code:
+          type: string
+
+    Pattern:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        rule:
+          type: string
+
+    # capability-backend
+    BusinessCapability:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        author:
+          type: string
+        link:
+          type: string
+          format: uri
+        owner:
+          type: string
+        isDomain:
+          type: boolean
+        parent:
+          type: string
+
+    BusinessCapabilityShort:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        author:
+          type: string
+        link:
+          type: string
+          format: uri
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
+        deletedDate:
+          type: string
+          format: date-time
+        owner:
+          type: string
+        isDomain:
+          type: boolean
+        hasChildren:
+          type: boolean
+        parent:
+          $ref: '#/components/schemas/BusinessCapabilityShort'
+
+    TechCapability:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        author:
+          type: string
+        link:
+          type: string
+          format: uri
+        owner:
+          type: string
+        parents:
+          type: array
+          items:
+            type: string
+        targetSystemCode:
+          type: string
+
+    CriterionCreateUpdate:
+      type: object
+      required:
+        - name
+        - description
+        - interval
+        - minDesc
+        - maxDesc
+      properties:
+        name:
+          type: string
+          description: Название критерия
+        description:
+          type: string
+          description: Описание критерия
+        type:
+          type: string
+          description: Тип критерия
+        interval:
+          type: integer
+          description: Интервал оценки
+        threshold:
+          type: integer
+          description: Пороговое значение
+        revers:
+          type: boolean
+          description: Флаг реверса (по умолчанию false)
+        minDesc:
+          type: string
+          description: Описание минимального значения
+        maxDesc:
+          type: string
+          description: Описание максимального значения
+
+    CriterionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор критерия
+        name:
+          type: string
+          description: Название критерия
+        description:
+          type: string
+          description: Описание критерия
+        type:
+          type: string
+          description: Тип критерия
+        interval:
+          type: integer
+          description: Интервал оценки
+        threshold:
+          type: integer
+          description: Пороговое значение
+        revers:
+          type: boolean
+          description: Флаг реверса
+        minDesc:
+          type: string
+          description: Описание минимального значения
+        maxDesc:
+          type: string
+          description: Описание максимального значения
+
+    CriterionAssignmentCreate:
+      type: object
+      required:
+        - type
+        - code
+        - criterionName
+        - value
+      properties:
+        type:
+          type: string
+          enum:
+            - business_capability
+            - tech_capability
+          description: Тип сущности
+        code:
+          type: string
+          description: Код сущности (BC или TC)
+        criterionName:
+          type: string
+          description: Название критерия
+        value:
+          type: integer
+          description: Значение оценки
+        grade:
+          type: integer
+          description: Оценка (может быть null)
+        comment:
+          type: string
+          description: Комментарий (может быть null)
+
+    CriterionAssignmentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор записи
+        criterion_id:
+          type: integer
+          description: Идентификатор критерия
+        value:
+          type: integer
+          description: Значение оценки
+        grade:
+          type: integer
+          description: Оценка
+        tcId:
+          type: integer
+          description: Идентификатор TC (для tech_capability)
+        bcId:
+          type: integer
+          description: Идентификатор BC (для business_capability)
+        comment:
+          type: string
+          description: Комментарий
+
+    # techradar-backend
+    TechCreate:
+      type: object
+      required:
+        - label
+        - sector_id
+        - ring_id
+      properties:
+        label:
+          type: string
+        descr:
+          type: string
+        sector_id:
+          type: integer
+        ring_id:
+          type: integer
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+        link:
+          type: string
+          format: uri
+        review:
+          type: boolean
+        isCritical:
+          type: boolean
+
+    TechCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+
+    TechAdvanced:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        review:
+          type: boolean
+        description:
+          type: string
+        link:
+          type: string
+          format: uri
+        createdDate:
+          type: string
+        deletedDate:
+          type: string
+        lastModifiedDate:
+          type: string
+        ring:
+          $ref: '#/components/schemas/Ring'
+        sector:
+          $ref: '#/components/schemas/Sector'
+        isCritical:
+          type: boolean
+        category:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechVersion'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechHistory'
+
+    Ring:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        order:
+          type: integer
+
+    Sector:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        order:
+          type: integer
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    TechVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+        versionStart:
+          type: string
+        versionEnd:
+          type: string
+        ring:
+          $ref: '#/components/schemas/Ring'
+
+    TechHistory:
+      type: object
+      properties:
+        version:
+          type: string
+        ring:
+          $ref: '#/components/schemas/Ring'
+        createdDate:
+          type: string
+
+    # cx-backend
+    CJCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        user_portrait:
+          type: string
+        draft:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        businessOwner:
+          type: integer
+        techOwners:
+          type: array
+          items:
+            type: integer
+
+    CJ:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        user_portrait:
+          type: string
+        lastModifiedDate:
+          type: string
+          format: date-time
+        deletedDate:
+          type: string
+          format: date-time
+        createdDate:
+          type: string
+          format: date-time
+        draft:
+          type: boolean
+        id_user_profile:
+          type: integer
+        id_product:
+          type: integer
+        uniqueIdent:
+          type: string
+        bpmn:
+          type: boolean
+
+    CJFull:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        lastModifiedDate:
+          type: string
+          format: date-time
+        draft:
+          type: boolean
+        id_user_profile:
+          type: integer
+        id_product:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/CJStep'
+
+    CJStep:
+      type: object
+      properties:
+        id:
+          type: integer
+        bi:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessInteraction'
+
+    BusinessInteraction:
+      type: object
+      properties:
+        id:
+          type: integer
+        uniqueIdent:
+          type: string
+        name:
+          type: string
+        descr:
+          type: string
+        isCommunal:
+          type: boolean
+        isTarget:
+          type: boolean
+        isDraft:
+          type: boolean
+        touchPoints:
+          type: string
+        feelings:
+          $ref: '#/components/schemas/Feeling'
+        eaGuid:
+          type: string
+        productId:
+          type: integer
+        ownerRole:
+          type: string
+        metrics:
+          type: string
+        authorId:
+          type: integer
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedDate:
+          type: string
+          format: date-time
+
+    Feeling:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    # document-service
+    DocumentCreated:
+      type: object
+      properties:
+        docId:
+          type: integer
+
+    # structurizr-backend
+    WorkspaceCreate:
+      type: object
+      required:
+        - code
+        - architect_name
+      properties:
+        code:
+          type: string
+          description: Код продукта в каталоге
+        architect_name:
+          type: string
+          description: Имя архитектора
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        api_key:
+          type: string
+        api_secret:
+          type: string
+        api_url:
+          type: string
+          format: uri
+
+    # fdm-notifications-management
+    NotificationPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        webNotify:
+          type: boolean
+        changeDate:
+          type: string
+        entityId:
+          type: integer
+        changeType:
+          type: string
+        entityName:
+          type: string
+        entityLink:
+          type: string
+        entityType:
+          type: string
+        alias:
+          type: string
+        childrenEntityId:
+          type: integer
+        linkTemplate:
+          type: string
+        changeDescription:
+          type: string
+
+    # fdm-pack-loader
+    PackagesPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Package'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
+
+    Package:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        operation:
+          type: string
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - ERROR
+            - WARNING
+            - PROCESS
+        allParts:
+          type: integer
+        successParts:
+          type: integer
+        errorParts:
+          type: integer
+        processParts:
+          type: integer
+        createdDate:
+          type: string
+
+    # Общие
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        errorEntity:
+          type: object
+          properties:
+            containerError:
+              type: array
+              items:
+                type: string
+            interfaceError:
+              type: array
+              items:
+                type: string
+            methodError:
+              type: array
+              items:
+                type: string
+            parameterError:
+              type: array
+              items:
+                type: string
+
+    # fdm-auth
+    UserShort:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID пользователя
+        login:
+          type: string
+          description: Логин пользователя
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+        firstName:
+          type: string
+          description: Имя
+        lastName:
+          type: string
+          description: Фамилия
+
+    UserFull:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID пользователя
+        login:
+          type: string
+          description: Логин пользователя
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+        firstName:
+          type: string
+          description: Имя
+        lastName:
+          type: string
+          description: Фамилия
+        middleName:
+          type: string
+          description: Отчество
+        phone:
+          type: string
+          description: Телефон
+        active:
+          type: boolean
+          description: Активен ли пользователь
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          description: Роли пользователя
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Разрешения пользователя
+
+    UserCreate:
+      type: object
+      required:
+        - login
+        - email
+        - firstName
+        - lastName
+      properties:
+        login:
+          type: string
+          description: Логин пользователя
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+        firstName:
+          type: string
+          description: Имя
+        lastName:
+          type: string
+          description: Фамилия
+        middleName:
+          type: string
+          description: Отчество
+        phone:
+          type: string
+          description: Телефон
+
+    UserCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID созданного пользователя
+        login:
+          type: string
+          description: Логин пользователя
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+
+    UserPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserShort'
+          description: Список пользователей
+        number:
+          type: integer
+          description: Номер страницы
+        size:
+          type: integer
+          description: Размер страницы
+        totalElements:
+          type: integer
+          description: Общее количество элементов
+        totalPages:
+          type: integer
+          description: Общее количество страниц
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID разрешения
+        name:
+          type: string
+          description: Название разрешения
+        description:
+          type: string
+          description: Описание разрешения
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID роли
+        name:
+          type: string
+          description: Название роли
+        description:
+          type: string
+          description: Описание роли
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+          description: Разрешения роли
+
+    RoleCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название роли
+        description:
+          type: string
+          description: Описание роли
+
+    ErrorResponse:
+      type: object
+      properties:
+        errorMessage:
+          type: string
+          description: Сообщение об ошибке

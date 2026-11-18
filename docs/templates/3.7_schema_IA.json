@@ -1,0 +1,229 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+	  "id": {
+		"type": "string",
+		"description": "Идентификатор IA в общем репозитории"
+	  },
+	  "namespace": {
+		"type": "string",
+		"description": "Пространство имён для классов API"
+	  },
+	  "name": {
+		"type": "string",
+		"description": "Название, например, IA между провайдером и потребителем"
+	  },
+	  "description": {
+		"type": "string",
+		"description": "Описание соглашения"
+	  },
+	  "agreementTemplateVersion": {
+		"type": "string",
+		"description": "Версия шаблона интерфейсного соглашения. Текущая версия 1.0.0",
+		"defaultValue": "1.1.0"
+	  },
+	  "agreementVersion": {
+		"type": "string",
+		"description": "Версия интерфейсного соглашения. Менять при изменении любых секций"
+	  },
+	  "status": {
+		"type": "string",
+		"description": "Статус внедрения",
+		"enum": ["Черновик", "Отклонено", "На согласовании", "Согласовано", "Реализовано на тестовой среде", "Протестировано на тестовой среде", "Протестировано на продуктивной среде", "Введено в эксплуатацию"]
+	  },
+	  "interactionType": {
+		"type": "string",
+		"description": "Тип взаимойдействия",
+		"enum": ["API", "Message", "File", "DB"]
+	  },
+	  "interactionPattern": {
+		"type": "string",
+		"description": "Паттерн взаимойдействия",
+		"enum": ["Publish/Subscribe", "RMI/RPC", "Stream", "OneWay", "RequestResponse", "RequestAcknowledgment", "TODO_MORE"]
+	  },
+	  "consumptionType": {
+		"type": "string",
+		"enum": ["Sync", "Async", "SemiAsync"]
+	  },
+	  "consumptionPattern": {
+		"type": "string",
+		"description": "Паттерн потребления",
+		"enum": ["CDC", "DataSync", "TODO_MORE"]
+	  },
+	  "provider": {
+		"$ref": "#/definitions/actor" 
+	  },
+	  "consumer": {
+		"$ref": "#/definitions/actor" 
+	  },
+	  "methods": {
+		"type": "array",
+		"items": [
+		  {
+			"type": "object",
+			"properties": {
+			  "name": {
+				"type": "string"
+			  },
+			  "description": {
+				"type": "string"
+			  },
+			  "status": {
+				"type": "string",
+				"description": "Статус",
+				"enum": ["Implemented", "Planned", "InProgress", "TODO_MORE"]
+			  }
+			},
+			"required": [
+			  "name",
+			  "description",
+			  "status"
+			]
+		  }
+		]
+	  },
+	  "interface": {
+		"$ref": "#/definitions/interface",
+		"description": "Описание интерфейса"
+	  },
+	  "loadProfile": {
+		"$ref": "#/definitions/loadProfile",
+		"description": "Профиль нагрузки"
+	  },
+	  "specification": {
+		"type": "string",
+		"description": "Ссылка на спецификацию (для API - ссылка на спеку, для сообщений Kafka - на JSON-схему)"
+	  },
+	  "specificationFormat": {
+		"type": "string",
+		"description": "Формат спецификации (например OpenAPI)"
+	  },
+	  "specificationFormatVersion": {
+		"type": "string",
+		"description": "Версия формата спецификации, например Version 3.1.0"
+	  },
+	  "technicalCapability": {
+		"type": "string",
+		"description": "TC-000001 (ссылка на Technical Capability из ФДМ)"
+	  }
+	},
+	"required": [
+	  "name",
+	  "description",
+	  "agreementVersion",
+	  "status",
+	  "interactionType",
+	  "consumptionType",
+	  "provider",
+	  "consumer",
+	  "methods",
+	  "loadProfile"
+	],
+	"definitions": {
+		"actor": {
+			"type": "object",
+			"properties": {
+			  "name": {
+				"type": "string"
+			  },
+			  "description": {
+				"type": "string"
+			  },
+			  "cmdbMnemonic": {
+				"type": "string"
+			  }
+			},
+			"required": [
+			  "name",
+			  "description",
+			  "cmdbMnemonic"
+			]
+		},
+		"interface": {
+			"type": "object",
+			"properties": {
+			  "interfaceEndpoint": {
+				"type": "string",
+				"description": "ссылка на точку потребления интерфейса. Для API - URL-адрес, доступный для HTTP-запросов"
+			  },
+			  "interfaceVersion": {
+				"type": "string",
+				"description": "версия интерфейса"
+			  }
+			}
+		},
+		"loadProfile": {
+			"type": "object",
+			"description": "Количество запросов",
+			"properties": {
+			  "requests": {
+				  "dimension": {
+					"type": "string",
+					"description": "Период измерения. Примеры: day, minute, second"
+				  },
+				  "value": {
+					"type": "string",
+					"description": "Значение показателя нагрузки"
+				  }
+			  },
+			  "dataVolume": {
+				  "type": "object",
+				  "description": "Объем данных в одном обращении",
+				  "dimension": {
+					"type": "string",
+					"description": "В чем измеряем объем данных. Примеры: KB, MB"
+				  },
+				  "value": {
+					"type": "string",
+					"description": "Значение объема данных"
+				  }
+			  },
+			  "multiplicityLoad": {
+				"type": "string",
+				"description": "Кратность роста нагрузки на более зрелых стадиях жизни ИТ-решения"
+			  },
+			  "bandwidth": {
+				  "type": "object",
+				  "description": "Пропускная способность, в сутки",
+				  "dimension": {
+					"type": "string",
+					"description": "В чем измеряем объем данных. Примеры: MB, GB"
+				  },
+				  "value": {
+					"type": "string",
+					"description": "Значение пропускной способности"
+				  }
+			  },
+			  "responseDelayMax": {
+				  "type": "object",
+				  "description": "Максимально допустимая задержка по ответу (95 перцентиль)",
+				  "dimension": {
+					"type": "string",
+					"description": "В чем измеряем задержку. Примеры: minute, second"
+				  },
+				  "value": {
+					"type": "string",
+					"description": "Значение задержки"
+				  }
+			  },
+			  "responseDelayExpected": {
+				  "type": "object",
+				  "description": "Ожидаемая задержка по ответу (75 перцентиль)",
+				  "dimension": {
+					"type": "string",
+					"description": "В чем измеряем задержку. Примеры: minute, second"
+				  },
+				  "value": {
+					"type": "string",
+					"description": "Значение задержки"
+				  }
+			  },
+			  "errorPercentage": {
+				"type": "string",
+				"description": "Допустимый процент ошибок"
+			  }
+			}
+		}
+	}
+  }
